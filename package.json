@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/Marcos515/gateway_opcua#readme",
   "dependencies": {
+    "kafka-node": "^5.0.0",
+    "kafkajs": "^1.15.0",
     "node-opcua": "^2.36.0"
   }
 }

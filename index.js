@@ -1,74 +1,70 @@
-const { OPCUAServer, findServers } = require("node-opcua");
-const opcua = require("node-opcua");
+const { exec } = require("child_process");
+const kafka = require("./kafka/kafka")
+const kafkaConfig = require('./files/kafka.json')
 const fs = require('fs')
-var value = 0
-setTimeout(async () => {
-var userManager = {
+try { exec("pm2 start opcuaserver.js --name \"index\"") } catch (err) { }
 
-    isValidUser: function (userName, password) {
-    
-        if (userName === "default" && password === "default") {
-    
-            return true;
-        }
-    
-    
-        return false;
-    }};
-    var server_options = {
+{
+    (async () => {
         
-        userManager: userManager,
-        
-        allowAnonymous: false,
-        };
-        
-        var server = new OPCUAServer(server_options);
 
-    await server.initialize();
-
-    const namespace = server.engine.addressSpace.getOwnNamespace();
-    const device = namespace.addObject({
-        browseName: "SomeObject",
-        organizedBy: server.engine.addressSpace.rootFolder.objects
-    });
-
-    namespace.addVariable({
-        dataType: 'Int16',
-        componentOf: device,
-        browseName: 'tag1',
-        nodeId: 's=tag1.tag1',
-        value: {
-            get: function () {
-                return new opcua.Variant({dataType: opcua.DataType.Int16, value: getValue() });
+        var consumer = kafka.consumer(kafkaConfig.host, kafkaConfig.topic)
+        consumer.on("message", async (message) => {
+            var msg = json(message.value)
+            if (msg.opcua && msg.deviceId) {
+                if (msg.deviceId == 11) {
+                    await newConfig(msg.config) == 1? restart(): console.log("nova config rejeitada")
+                } else {
+                    console.log(-2)
+                }
+            } else {
+                console.log(-1)
             }
+        })
+
+        async function restart(){
+            console.log("nova config aceita") 
+            await exec("pm2 stop index && pm2 start index")
         }
-    });
 
-    server.on("request", (req)=>{
-      
-      if(req.nodesToWrite){
-          let array = req.nodesToWrite
 
-          for (let index = 0; index < array.length; index++) {
-            value = array[index].value.value.value
-              
-          }
-      }
-        //  fs.writeFileSync('./req.txt', JSON.stringify(req, null, 5))
-    })
-    
-    
-  
-    await server.start(function() {
-        
-        var endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
-        console.log('endpoint: ' + endpointUrl );
-      });
+    })()
+}
 
-  
-    
-}, 10)
+async function newConfig(config) {
+    try {
+        if (config.username && config.password && config.dirName && configIn(config.allowAnonymous) && config.variables) {
+            console.log("nova config com: ", config.variables.length, "variaveis")
 
-function getValue(){
-    return value
+            for (let index = 0; index < config.variables.length; index++) {
+                if (!config.variables[index].browseName && !config.variables[index].dataType && !config.variables[index].id) {
+                    
+                    return -1
+                }
+            }
+            fs.writeFileSync("./files/config.json", JSON.stringify(config))
+            return 1
+        }
+       
+        return -1
+    } catch (err) {
+        console.log(err)
+        return -1
+    }
+}
+
+function configIn(val){
+    if(val == undefined || val == "undefined"){
+        //console.log(val)
+        return false
+    }else{
+        return true
+    }
+}
+function json(json) {
+    try {
+        return JSON.parse(json)
+    } catch (err) {
+        return json
+    }
 }

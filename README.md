@@ -6,3 +6,6 @@ No arquivo kafka.json é onde o código espera receber uma nova configuração, 
 
 No arquivo config.json é onde fica armazenado uma configuração recebida, um template de json de configuracao valido para ser enviado no kafka:
 {"opcua":true,"deviceId":11,"config":{}}
+
+Para a atualização de valores, o codigo verifica o nome das variaveis de seu config e as variavei enviadas no kafka seguindo o template a seguir, se os nomes forem iguais ele ataliza o valor.
+{"ts":15151241215,"deviceId":11,"values":[{"name":"vazao", "value":100}]}
